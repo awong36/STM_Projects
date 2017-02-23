@@ -37,12 +37,19 @@
 #include "stdbool.h"
 
 /* USER CODE BEGIN 0 */
+#define total_retry 3           //Total amount of retries before motor stops after timeout
+#define timeout 30000           //Time limit for motor to reach position, configured as seconds/1ms
+#define rest_time 5000          //Rest time after movement completes, configured as seconds/1ms
+#define debounce 100            //Debounce time for micro-switches, configured as seconds/1ms
+#define signal_time 2000        //On time for external trigger signal, configured as seconds/1ms
+
 extern bool motor_dir[5];
 extern bool motion[5];
+extern uint8_t retry[5];
+extern uint8_t cnt_trigger[5];
+extern uint32_t cnt_timer[5];
 extern uint32_t motor_timer[5];
 extern uint32_t motor_rest[5];
-extern uint32_t retry[5];
-extern uint32_t status[5];
 extern uint32_t count[5];
 
 /* USER CODE END 0 */
@@ -89,29 +96,29 @@ void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
     
-  //Motor 1 Switches condition
+  //Motor Switches condition
   if (HAL_GPIO_ReadPin(SW_UP1_GPIO_Port, SW_UP1_Pin)){
        count[0] ++;
-       if (count[0] >= 100){ // delay by 100ms
+       if (count[0] >= debounce){ // delay for debounce
            count[0] = 0;
            if (motor_dir[0] != 1){
-                //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
                 motor_dir[0] = 1;      //next direction
-                motor_rest[0] = 5000; //set rest time
+                motor_rest[0] = rest_time; //set rest time
                 motion[0] = 0;
+                cnt_trigger[0] ++;
            }     
        }    
   }
   
   if (HAL_GPIO_ReadPin(SW_DWN1_GPIO_Port, SW_DWN1_Pin)){
        count[0] ++;
-       if (count[0] >= 100){ // delay by 100ms
+       if (count[0] >= debounce){ // delay debounce
            count[0] = 0;
            if (motor_dir[0] != 0){
-                //HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
                 motor_dir[0] = 0;      //next direction 
-                motor_rest[0] = 5000; //set rest time 
+                motor_rest[0] = rest_time; //set rest time 
                 motion[0] = 0;
+                cnt_trigger[0] ++;
            }    
         }
   }  
@@ -119,11 +126,9 @@ void SysTick_Handler(void)
   //Motor reset and timeout condition
   if (HAL_GPIO_ReadPin(LD3_GPIO_Port, LD3_Pin) || HAL_GPIO_ReadPin(LD4_GPIO_Port, LD4_Pin)){
        motor_timer[0] ++;     //increment run timer
-       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-       if (motor_timer[0] > 30000){         //timeout set at 30sec
-           HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+       if (motor_timer[0] > timeout){         //timeout 
            motion[0] = 0;
-           motor_rest[0] = 5000;
+           motor_rest[0] = rest_time;
            retry[0] ++;
        }    
        if (motion[0] == 0){
@@ -132,8 +137,8 @@ void SysTick_Handler(void)
             motor_timer[0] = 0;          
        } 
   }
-  //motion ready condition
-  if (retry[0] < 3){
+  //Motion ready condition
+  if (retry[0] <= total_retry){
       if (motor_rest[0] > 0){
             motor_rest[0] --;
             motion[0] = 0;
@@ -143,20 +148,34 @@ void SysTick_Handler(void)
       }       
      
      if (motion[0] == 1){
-         if (motor_dir[0] == 1){
-            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET); 
+         if (motor_dir[0] == 1 && HAL_GPIO_ReadPin(LD4_GPIO_Port, LD4_Pin) != SET){
+            if (cnt_trigger[0] == 2){
+                HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, GPIO_PIN_SET); 
+                cnt_timer[0] = signal_time;        
+            }
+            cnt_trigger[0] = 0;
             HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
             motor_timer[0] = 0;
 
          }
-         if (motor_dir[0] == 0){
-            HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET); 
+         if (motor_dir[0] == 0 && HAL_GPIO_ReadPin(LD3_GPIO_Port, LD3_Pin) != SET){ 
             HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
             motor_timer[0] = 0; 
          }       
      } 
+     
+           
+     
+            
    }  
-    
+   if (cnt_timer != 0){
+        cnt_timer[0] --;
+        HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin); 
+     }
+     else{
+         //(cnt_timer[0] == 0){
+        HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, GPIO_PIN_RESET);
+     }  
   /* USER CODE END SysTick_IRQn 0 */
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */

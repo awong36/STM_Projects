@@ -35,14 +35,16 @@
 #include "stdbool.h"
 
 /* USER CODE BEGIN Includes */
-                                                                        //volatile -> can be modified by ISR or other functions
+/* volatile -> can be modified by ISR or other functions, continue to exist after function executes */
 volatile bool motor_dir[5] = {0, 0, 0, 0, 0};                           //Motor direction [0 for UP, 1 for DOWN]
 volatile bool motion[5] = {1, 1, 1, 1, 1};                              //Motion enable [0 for stop, 1 for enable]
+volatile uint8_t retry[5] = {0, 0, 0, 0, 0};                            //Retry counter before motion disable (max 3)
+volatile uint8_t cnt_trigger[5] = {0, 0, 0, 0, 0};                      //Cycle counter for external trigger signal 
+volatile uint32_t cnt_timer[5] = {0, 0, 0, 0, 0};                       //On timer for external trigger signal
 volatile uint32_t motor_timer[5] = {0, 0, 0, 0, 0};                     //Motor run time
 volatile uint32_t motor_rest[5] = {0, 0, 0, 0, 0};                      //Motor rest time < 0 for bypass 
-volatile uint32_t retry[5] = {0, 0, 0, 0, 0};                           //Retry counter before motion disable (max 3)
-volatile uint32_t status[5] = {0, 0, 0, 0, 0};                          //Operation status  
 volatile uint32_t count[5] = {0, 0, 0, 0, 0};                           //delay counter
+
 
 /* USER CODE END Includes */
 
