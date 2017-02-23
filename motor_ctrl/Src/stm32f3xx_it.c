@@ -34,12 +34,22 @@
 #include "stm32f3xx_hal.h"
 #include "stm32f3xx.h"
 #include "stm32f3xx_it.h"
+#include "stdbool.h"
 
 /* USER CODE BEGIN 0 */
+extern bool motor_dir[5];
+extern bool motion[5];
+extern uint32_t motor_timer[5];
+extern uint32_t motor_rest[5];
+extern uint32_t retry[5];
+extern uint32_t status[5];
+extern uint32_t count[5];
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+
+extern TIM_HandleTypeDef htim2;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -73,16 +83,87 @@ void PendSV_Handler(void)
 
 /**
 * @brief This function handles System tick timer.
+* each iteration increment by 1ms config by systick config
 */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
+    
+  //Motor 1 Switches condition
+  if (HAL_GPIO_ReadPin(SW_UP1_GPIO_Port, SW_UP1_Pin)){
+       count[0] ++;
+       if (count[0] >= 100){ // delay by 100ms
+           count[0] = 0;
+           if (motor_dir[0] != 1){
+                //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+                motor_dir[0] = 1;      //next direction
+                motor_rest[0] = 5000; //set rest time
+                motion[0] = 0;
+           }     
+       }    
+  }
+  
+  if (HAL_GPIO_ReadPin(SW_DWN1_GPIO_Port, SW_DWN1_Pin)){
+       count[0] ++;
+       if (count[0] >= 100){ // delay by 100ms
+           count[0] = 0;
+           if (motor_dir[0] != 0){
+                //HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+                motor_dir[0] = 0;      //next direction 
+                motor_rest[0] = 5000; //set rest time 
+                motion[0] = 0;
+           }    
+        }
+  }  
 
+  //Motor reset and timeout condition
+  if (HAL_GPIO_ReadPin(LD3_GPIO_Port, LD3_Pin) || HAL_GPIO_ReadPin(LD4_GPIO_Port, LD4_Pin)){
+       motor_timer[0] ++;     //increment run timer
+       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+       if (motor_timer[0] > 30000){         //timeout set at 30sec
+           HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+           motion[0] = 0;
+           motor_rest[0] = 5000;
+           retry[0] ++;
+       }    
+       if (motion[0] == 0){
+            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+            motor_timer[0] = 0;          
+       } 
+  }
+  //motion ready condition
+  if (retry[0] < 3){
+      if (motor_rest[0] > 0){
+            motor_rest[0] --;
+            motion[0] = 0;
+      }
+      if (motor_rest[0] == 0){
+            motion[0] = 1;
+      }       
+     
+     if (motion[0] == 1){
+         if (motor_dir[0] == 1){
+            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET); 
+            HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+            motor_timer[0] = 0;
+
+         }
+         if (motor_dir[0] == 0){
+            HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET); 
+            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+            motor_timer[0] = 0; 
+         }       
+     } 
+   }  
+    
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+     
+     
+         
+         
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -92,6 +173,20 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f3xx.s).                    */
 /******************************************************************************/
+
+/**
+* @brief This function handles TIM2 global interrupt.
+*/
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

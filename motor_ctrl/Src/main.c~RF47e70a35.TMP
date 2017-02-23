@@ -32,17 +32,8 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-#include "stdbool.h"
 
 /* USER CODE BEGIN Includes */
-                                                                        //volatile -> can be modified by ISR or other functions
-volatile bool motor_dir[5] = {0, 0, 0, 0, 0};                           //Motor direction [0 for UP, 1 for DOWN]
-volatile bool motion[5] = {1, 1, 1, 1, 1};                              //Motion enable [0 for stop, 1 for enable]
-volatile uint32_t motor_timer[5] = {0, 0, 0, 0, 0};                     //Motor run time
-volatile uint32_t motor_rest[5] = {0, 0, 0, 0, 0};                      //Motor rest time < 0 for bypass 
-volatile uint32_t retry[5] = {0, 0, 0, 0, 0};                           //Retry counter before motion disable (max 3)
-volatile uint32_t status[5] = {0, 0, 0, 0, 0};                          //Operation status  
-volatile uint32_t count[5] = {0, 0, 0, 0, 0};                           //delay counter
 
 /* USER CODE END Includes */
 
@@ -92,28 +83,13 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-    //Start PWM control pin
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+    //__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 100);
     
-    //Adjust PWM duty cycle
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 100);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 100);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 100);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_4, 100);
-    
-    
-    //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD7_GPIO_Port, LD7_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD8_GPIO_Port, LD8_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD9_GPIO_Port, LD9_Pin, GPIO_PIN_SET);
-    //HAL_GPIO_WritePin(LD10_GPIO_Port, LD10_Pin, GPIO_PIN_SET);
-    
+    HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, LD
 
   /* USER CODE END 2 */
 
@@ -124,7 +100,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-        
+
   }
   /* USER CODE END 3 */
 
@@ -160,7 +136,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000); //100us --> divide by 10000, 1ms --> divide by 1000
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
