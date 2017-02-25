@@ -1,12 +1,14 @@
 Configuration	motor_ctrl
 STM32CubeMX 	4.16.0
-Date	02/20/2017
+Date	02/25/2017
 MCU	STM32F303VCTx
 
 
 
 PERIPHERALS	MODES	FUNCTIONS	PINS
 SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM2	Internal Clock	TIM2_VS_ClockSourceINT	VP_TIM2_VS_ClockSourceINT
+TIM2	PWM Generation CH1	TIM2_CH1	PA15
 TIM3	Internal Clock	TIM3_VS_ClockSourceINT	VP_TIM3_VS_ClockSourceINT
 TIM3	PWM Generation CH1	TIM3_CH1	PC6
 TIM3	PWM Generation CH2	TIM3_CH2	PA4
@@ -25,45 +27,43 @@ Pin Nb	PINs	FUNCTIONs	LABELs
 12	PF0-OSC_IN*	RCC_OSC_IN	OSC_IN
 13	PF1-OSC_OUT*	RCC_OSC_OUT	OSC_OUT
 23	PA0	GPIO_Input	B1 [Blue PushButton]
-29	PA4	TIM3_CH2	
+29	PA4	TIM3_CH2	PWM1
 30	PA5*	SPI1_SCK	SPI1_SCK [L3GD20_SCL/SPC]
 31	PA6*	SPI1_MISO	SPI1_MISO [L3GD20_SA0/SDO]
 32	PA7*	SPI1_MOSI	SPI1_MISO [L3GD20_SDA/SDI/SDO]
-35	PB0	TIM3_CH3	
-36	PB1	TIM3_CH4	
-39	PE8	GPIO_Output	LD4 [Blue Led]
-40	PE9	GPIO_Output	LD3 [Red Led]
-41	PE10	GPIO_Output	LD5 [Orange Led]
-42	PE11	GPIO_Output	LD7 [Green Led]
-43	PE12	GPIO_Output	LD9 [Blue Led]
-44	PE13	GPIO_Output	LD10 [Red Led]
-45	PE14	GPIO_Output	LD8 [Orange Led]
-46	PE15	GPIO_Output	LD6 [Green Led]
-51	PB12	GPIO_Output	INB_DWN4
-52	PB13	GPIO_Output	INA_UP4
-53	PB14	GPIO_Input	SW_DWN4
-54	PB15	GPIO_Input	SW_UP4
-55	PD8	GPIO_Output	INB_DWN3
-56	PD9	GPIO_Output	INA_UP3
-57	PD10	GPIO_Input	SW_DWN3
-58	PD11	GPIO_Input	SW_UP3
-59	PD12	GPIO_Output	INB_DWN2
-60	PD13	GPIO_Output	INA_UP2
+35	PB0	TIM3_CH3	PWM2
+36	PB1	TIM3_CH4	PWM3
+39	PE8	GPIO_Output	DIR_UP1 [LD4 Blue Led]
+40	PE9	GPIO_Output	DIR_UP2 [LD3 Red Led]
+41	PE10	GPIO_Output	DIR_UP3 [LD5 Orange Led]
+42	PE11	GPIO_Output	DIR_DWN0 [LD7 Green Led]
+43	PE12	GPIO_Output	DIR_DWN3 [LD9 Blue Led]
+44	PE13	GPIO_Output	DIR_DWN2 [LD10 Red Led]
+45	PE14	GPIO_Output	DIR_DWN1 [LD8  Orange Led]
+46	PE15	GPIO_Output	DIR_UP0 [LD6 Green Led]
+55	PD8	GPIO_Output	DIR_DWN4
+56	PD9	GPIO_Output	DIR_UP4
+57	PD10	GPIO_Input	SW_DWN4
+58	PD11	GPIO_Input	SW_UP4
+59	PD12	GPIO_Output	SW_DWN3
+60	PD13	GPIO_Output	SW_UP3
 61	PD14	GPIO_Input	SW_DWN2
 62	PD15	GPIO_Input	SW_UP2
-63	PC6	TIM3_CH1	
-66	PC9	GPIO_Output	INB_DWN1
-67	PA8	GPIO_Output	INA_UP1
-68	PA9	GPIO_Input	SW_DWN1
-69	PA10	GPIO_Input	SW_UP1
+63	PC6	TIM3_CH1	PWM0
+66	PC9	GPIO_Output	SW_DWN1
+67	PA8	GPIO_Output	SW_UP1
+68	PA9	GPIO_Input	SW_DWN0
+69	PA10	GPIO_Input	SW_UP0
 70	PA11*	USB_DM	DM
 71	PA12*	USB_DP	DP
 72	PA13*	SYS_JTMS-SWDIO	SWDIO
 76	PA14*	SYS_JTCK-SWCLK	SWCLK
-84	PD3	GPIO_Output	INB_DWN5
-85	PD4	GPIO_Output	INA_UP5
-86	PD5	GPIO_Input	SW_DWN5
-87	PD6	GPIO_Input	SW_UP5
+77	PA15	TIM2_CH1	PWM4
+82	PD1	GPIO_Output	SIG_TRIG0
+83	PD2	GPIO_Output	SIG_TRIG1
+84	PD3	GPIO_Output	SIG_TRIG2
+85	PD4	GPIO_Output	SIG_TRIG3
+86	PD5	GPIO_Output	SIG_TRIG4
 89	PB3*	SYS_JTDO-TRACESWO	SWO
 92	PB6*	I2C1_SCL	I2C1_SCL [LSM303DLHC_SCL]
 93	PB7*	I2C1_SDA	I2C1_SDA [LSM303DLHC_SDA]
@@ -82,9 +82,9 @@ Firmware Package Name and Version : STM32Cube FW_F3 V1.6.0
 
 
 Code Generation Settings : 
-STM32Cube Firmware Library Package : Copy all used libraries into the project folder
+STM32Cube Firmware Library Package : Copy only the necessary library files
 Generate peripheral initialization as a pair of '.c/.h' files per peripherals : No
-Backup previously generated files when re-generating : No
+Backup previously generated files when re-generating : Yes
 Delete previously generated files when not re-generated : Yes
 Set all free pins as analog (to optimize the power consumption) : No
 
