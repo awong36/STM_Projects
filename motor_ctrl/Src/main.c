@@ -35,7 +35,7 @@
 #include "stdbool.h"
 
 /* USER CODE BEGIN Includes */
-/* volatile -> can be modified by ISR or other functions, continue to exist after function executes */
+/* volatile -> can be modified by ISR or other functions, continue to exist after ISR or function completed execution */
 volatile bool motor_dir[5] = {1, 1, 1, 1, 1};                           //Motor direction [0 for UP, 1 for DOWN]
 volatile bool motion[5] = {1, 1, 1, 1, 1};                              //Motion enable [0 for stop, 1 for enable]
 volatile bool SW_UP[5] = {0, 0, 0, 0, 0};                               //Up micro-switch status
