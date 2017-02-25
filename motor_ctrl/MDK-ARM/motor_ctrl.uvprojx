@@ -332,7 +332,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F303xC</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;        ../Drivers/STM32F3xx_HAL_Driver/Inc;        ../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy;        ../Drivers/CMSIS/Include;        ../Drivers/CMSIS/Device/ST/STM32F3xx/Include</IncludePath>
+              <IncludePath>../Inc;          ../Drivers/STM32F3xx_HAL_Driver/Inc;          ../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy;          ../Drivers/CMSIS/Include;          ../Drivers/CMSIS/Device/ST/STM32F3xx/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -389,11 +389,6 @@
               <FileName>stm32f3xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/stm32f3xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f3xx_hal_timebase_TIM.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/stm32f3xx_hal_timebase_TIM.c</FilePath>
             </File>
           </Files>
         </Group>

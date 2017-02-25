@@ -38,10 +38,10 @@
 /* volatile -> can be modified by ISR or other functions, continue to exist after function executes */
 volatile bool motor_dir[5] = {1, 1, 1, 1, 1};                           //Motor direction [0 for UP, 1 for DOWN]
 volatile bool motion[5] = {1, 1, 1, 1, 1};                              //Motion enable [0 for stop, 1 for enable]
-volatile bool SW_UP[5] = {0, 0, 0, 0, 0};                               //Up micro-switch status
-volatile bool SW_DWN[5] = {0, 0, 0, 0, 0};                              //Down micro-switch status
-volatile bool DIR_UP[5] = {0, 0, 0, 0, 0};                              //Up direction pin status
-volatile bool DIR_DWN[5] = {0, 0, 0, 0, 0};                             //Down direction pin status
+volatile bool SW_UP[5] = {0, 0, 0, 0, 0};
+volatile bool SW_DWN[5] = {0, 0, 0, 0, 0};
+volatile bool PIN_UP[5] = {0, 0, 0, 0, 0};
+volatile bool PIN_DWN[5] = {0, 0, 0, 0, 0};
 volatile uint8_t retry[5] = {0, 0, 0, 0, 0};                            //Retry counter before motion disable (max 3)
 volatile uint8_t cnt_trigger[5] = {0, 0, 0, 0, 0};                      //Cycle counter for external trigger signal 
 volatile uint32_t cnt_timer[5] = {0, 0, 0, 0, 0};                       //On timer for external trigger signal
@@ -53,7 +53,6 @@ volatile uint32_t count[5] = {0, 0, 0, 0, 0};                           //delay 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
@@ -66,7 +65,6 @@ void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_TIM2_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                 
@@ -98,7 +96,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM3_Init();
-  MX_TIM2_Init();
 
   /* USER CODE BEGIN 2 */
     //Start PWM control pin
@@ -106,14 +103,22 @@ int main(void)
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
     
-    //Adjust PWM duty cycle, max counter period set @ 200
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_4, 200);
-    __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_1, 200);
+    //Adjust PWM duty cycle
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 100);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 100);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 100);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_4, 100);
+    
+    
+    //HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD5_GPIO_Port, LD5_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD7_GPIO_Port, LD7_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD8_GPIO_Port, LD8_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD9_GPIO_Port, LD9_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LD10_GPIO_Port, LD10_Pin, GPIO_PIN_SET);
     
 
   /* USER CODE END 2 */
@@ -161,61 +166,12 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000); //100us --> divide by 10000, 1ms --> divide by 1000
 
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-}
-
-/* TIM2 init function */
-static void MX_TIM2_Init(void)
-{
-
-  TIM_ClockConfigTypeDef sClockSourceConfig;
-  TIM_MasterConfigTypeDef sMasterConfig;
-  TIM_OC_InitTypeDef sConfigOC;
-
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 24;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 200;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 200;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  HAL_TIM_MspPostInit(&htim2);
-
 }
 
 /* TIM3 init function */
@@ -255,7 +211,7 @@ static void MX_TIM3_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 200;
+  sConfigOC.Pulse = 50;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -263,16 +219,19 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
 
+  sConfigOC.Pulse = 100;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
 
+  sConfigOC.Pulse = 150;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
 
+  sConfigOC.Pulse = 200;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
@@ -317,12 +276,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CS_I2C_SPI_Pin DIR_UP1_Pin DIR_UP2_Pin DIR_UP3_Pin 
-                           DIR_DWN0_Pin DIR_DWN3_Pin DIR_DWN2_Pin DIR_DWN1_Pin 
-                           DIR_UP0_Pin */
-  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|DIR_UP1_Pin|DIR_UP2_Pin|DIR_UP3_Pin 
-                          |DIR_DWN0_Pin|DIR_DWN3_Pin|DIR_DWN2_Pin|DIR_DWN1_Pin 
-                          |DIR_UP0_Pin;
+  /*Configure GPIO pins : CS_I2C_SPI_Pin LD4_Pin LD3_Pin LD5_Pin 
+                           LD7_Pin LD9_Pin LD10_Pin LD8_Pin 
+                           LD6_Pin */
+  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|LD4_Pin|LD3_Pin|LD5_Pin 
+                          |LD7_Pin|LD9_Pin|LD10_Pin|LD8_Pin 
+                          |LD6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -342,44 +301,52 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DIR_DWN4_Pin DIR_UP4_Pin SIG_TRIG0_Pin SIG_TRIG1_Pin 
-                           SIG_TRIG2_Pin SIG_TRIG3_Pin SIG_TRIG4_Pin */
-  GPIO_InitStruct.Pin = DIR_DWN4_Pin|DIR_UP4_Pin|SIG_TRIG0_Pin|SIG_TRIG1_Pin 
-                          |SIG_TRIG2_Pin|SIG_TRIG3_Pin|SIG_TRIG4_Pin;
+  /*Configure GPIO pins : INB_DWN4_Pin INA_UP4_Pin */
+  GPIO_InitStruct.Pin = INB_DWN4_Pin|INA_UP4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SW_DWN4_Pin SW_UP4_Pin */
+  GPIO_InitStruct.Pin = SW_DWN4_Pin|SW_UP4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : INB_DWN3_Pin INA_UP3_Pin INB_DWN2_Pin INA_UP2_Pin 
+                           INB_DWN5_Pin INA_UP5_Pin */
+  GPIO_InitStruct.Pin = INB_DWN3_Pin|INA_UP3_Pin|INB_DWN2_Pin|INA_UP2_Pin 
+                          |INB_DWN5_Pin|INA_UP5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SW_DWN4_Pin SW_UP4_Pin SW_DWN2_Pin SW_UP2_Pin */
-  GPIO_InitStruct.Pin = SW_DWN4_Pin|SW_UP4_Pin|SW_DWN2_Pin|SW_UP2_Pin;
+  /*Configure GPIO pins : SW_DWN3_Pin SW_UP3_Pin SW_DWN2_Pin SW_UP2_Pin 
+                           SW_DWN5_Pin SW_UP5_Pin */
+  GPIO_InitStruct.Pin = SW_DWN3_Pin|SW_UP3_Pin|SW_DWN2_Pin|SW_UP2_Pin 
+                          |SW_DWN5_Pin|SW_UP5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SW_DWN3_Pin SW_UP3_Pin */
-  GPIO_InitStruct.Pin = SW_DWN3_Pin|SW_UP3_Pin;
+  /*Configure GPIO pin : INB_DWN1_Pin */
+  GPIO_InitStruct.Pin = INB_DWN1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  HAL_GPIO_Init(INB_DWN1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SW_DWN1_Pin */
-  GPIO_InitStruct.Pin = SW_DWN1_Pin;
+  /*Configure GPIO pin : INA_UP1_Pin */
+  GPIO_InitStruct.Pin = INA_UP1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SW_DWN1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(INA_UP1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SW_UP1_Pin */
-  GPIO_InitStruct.Pin = SW_UP1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SW_UP1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : SW_DWN0_Pin SW_UP0_Pin */
-  GPIO_InitStruct.Pin = SW_DWN0_Pin|SW_UP0_Pin;
+  /*Configure GPIO pins : SW_DWN1_Pin SW_UP1_Pin */
+  GPIO_InitStruct.Pin = SW_DWN1_Pin|SW_UP1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -401,26 +368,49 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|DIR_UP1_Pin|DIR_UP2_Pin|DIR_UP3_Pin 
-                          |DIR_DWN0_Pin|DIR_DWN3_Pin|DIR_DWN2_Pin|DIR_DWN1_Pin 
-                          |DIR_UP0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|LD4_Pin|LD3_Pin|LD5_Pin 
+                          |LD7_Pin|LD9_Pin|LD10_Pin|LD8_Pin 
+                          |LD6_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, DIR_DWN4_Pin|DIR_UP4_Pin|SW_DWN3_Pin|SW_UP3_Pin 
-                          |SIG_TRIG0_Pin|SIG_TRIG1_Pin|SIG_TRIG2_Pin|SIG_TRIG3_Pin 
-                          |SIG_TRIG4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, INB_DWN4_Pin|INA_UP4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SW_DWN1_GPIO_Port, SW_DWN1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, INB_DWN3_Pin|INA_UP3_Pin|INB_DWN2_Pin|INA_UP2_Pin 
+                          |INB_DWN5_Pin|INA_UP5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SW_UP1_GPIO_Port, SW_UP1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(INB_DWN1_GPIO_Port, INB_DWN1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(INA_UP1_GPIO_Port, INA_UP1_Pin, GPIO_PIN_RESET);
 
 }
 
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM2 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+/* USER CODE BEGIN Callback 0 */
+
+/* USER CODE END Callback 0 */
+  if (htim->Instance == TIM2) {
+    HAL_IncTick();
+  }
+/* USER CODE BEGIN Callback 1 */
+
+/* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
