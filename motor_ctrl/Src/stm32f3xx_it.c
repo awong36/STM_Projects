@@ -47,7 +47,7 @@ extern bool motor_dir[5];
 extern bool motion[5];
 extern bool SW_UP[5];
 extern bool SW_DWN[5];
-extern bool DIR_UP[5];
+extern bool DIR_UP[5];                                                                                                                             
 extern bool DIR_DWN[5];
 extern uint8_t retry[5];
 extern uint8_t cnt_trigger[5];
@@ -317,6 +317,13 @@ void SysTick_Handler(void)
            motion[i] = 0;
            motor_rest[i] = rest_time;
            retry[i] ++;
+           //switch direction when error occurs
+           if (DIR_UP[i] == 1){
+                motor_dir[i] = 1;
+           }
+           if (DIR_DWN[i] == 1){
+                motor_dir[i] = 0;
+           }    
        }
    }
   }    
@@ -367,6 +374,7 @@ void SysTick_Handler(void)
             if (cnt_trigger[0] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG0_GPIO_Port, SIG_TRIG0_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[0] = signal_time;
+                retry[0] = 0;   //reset retry count if cycle counter can increment
                 
             }
             HAL_GPIO_WritePin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin, GPIO_PIN_SET);
@@ -383,7 +391,8 @@ void SysTick_Handler(void)
          if (motor_dir[1] == 1 && HAL_GPIO_ReadPin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin) != SET){          
             if (cnt_trigger[1] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG1_GPIO_Port, SIG_TRIG1_Pin, GPIO_PIN_SET); //sig trig set for counter
-                cnt_timer[1] = signal_time;              
+                cnt_timer[1] = signal_time; 
+                retry[1] = 0;   //reset retry count if cycle counter can increment        
             }
             HAL_GPIO_WritePin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin, GPIO_PIN_SET);
             motor_timer[1] = 0;
@@ -400,6 +409,7 @@ void SysTick_Handler(void)
             if (cnt_trigger[2] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG2_GPIO_Port, SIG_TRIG2_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[2] = signal_time;
+                retry[2] = 0;   //reset retry count if cycle counter can increment
                 
             }
             HAL_GPIO_WritePin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin, GPIO_PIN_SET);
@@ -417,6 +427,7 @@ void SysTick_Handler(void)
             if (cnt_trigger[3] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG3_GPIO_Port, SIG_TRIG3_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[3] = signal_time;
+                retry[3] = 0;   //reset retry count if cycle counter can increment
                 
             }
             HAL_GPIO_WritePin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin, GPIO_PIN_SET);
@@ -434,6 +445,7 @@ void SysTick_Handler(void)
             if (cnt_trigger[4] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG4_GPIO_Port, SIG_TRIG4_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[4] = signal_time;
+                retry[4] = 0;   //reset retry count if cycle counter can increment
                 
             }
             HAL_GPIO_WritePin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin, GPIO_PIN_SET);

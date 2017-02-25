@@ -108,7 +108,7 @@ int main(void)
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
     
-    //Adjust PWM duty cycle, max counter period set @ 200
+    //Adjust PWM duty cycle, max counter period configured @ 200
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 200);
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 200);
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 200);
