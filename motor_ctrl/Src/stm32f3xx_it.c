@@ -42,6 +42,7 @@
 #define rest_time 15000          //Rest time after movement completed, configured as seconds/1ms
 #define debounce 100            //Debounce time for micro-switches, configured as seconds/1ms
 #define signal_time 2000        //On time for external trigger signal, configured as seconds/1ms
+#define restart_time 900000     //reset retry count after this set time expires, configured as seconds/1ms
 
 extern bool motor_dir[5];
 extern bool motion[5];
@@ -55,6 +56,7 @@ extern uint32_t cnt_timer[5];
 extern uint32_t motor_timer[5];
 extern uint32_t motor_rest[5];
 extern uint32_t count[5];
+extern uint32_t retry_timer[5];
 uint8_t i;
      
 
@@ -294,41 +296,48 @@ void SysTick_Handler(void)
   for(i = 0; i <= 4; i++){
     if (SW_UP[i]){
         if (motor_dir[i] != 1){
-            motor_dir[i] = 1;      //next direction
+            //motor_dir[i] = 1;      //next direction
             motor_rest[i] = rest_time; //set rest time
+            motor_timer[i] = 0;
             motion[i] = 0;
             cnt_trigger[i] ++;
-        }     
+        } 
+        motor_dir[i] = 1;      //next direction        
     }        
   }
   
   for(i = 0; i <= 4; i++){
     if (SW_DWN[i]){
         if (motor_dir[i] != 0){
-            motor_dir[i] = 0;      //next direction 
+            //motor_dir[i] = 0;      //next direction 
             motor_rest[i] = rest_time; //set rest time 
+            motor_timer[i] = 0;
             motion[i] = 0;
             cnt_trigger[i] ++;
-        }    
+        } 
+        motor_dir[i] = 0;      //next direction    
     }
   }  
   
   //Motor timeout condition
   for(i = 0; i <= 4; i++){
-    if (DIR_UP[i] == 1 || DIR_DWN[i] == 1){
-       motor_timer[i] ++;     //increment run timer
-       if (motor_timer[i] > timeout){         //timeout 
-           motion[i] = 0;
-           motor_rest[i] = rest_time;
-           retry[i] ++;
-           //switch direction when error occurs
-           if (DIR_UP[i] == 1){
-                motor_dir[i] = 1;
+    if (motion[i] == 1){  
+        if (DIR_UP[i] == 1 || DIR_DWN[i] == 1){
+           motor_timer[i] ++;     //increment run timer
+           if (motor_timer[i] > timeout){         //timeout 
+               motion[i] = 0;
+               motor_rest[i] = rest_time;
+               motor_timer[i] = 0;
+               retry[i] ++;
+               //switch direction when error occurs
+               if (DIR_UP[i] == 1){
+                    motor_dir[i] = 1;
+               }
+               if (DIR_DWN[i] == 1){
+                    motor_dir[i] = 0;
+               }    
            }
-           if (DIR_DWN[i] == 1){
-                motor_dir[i] = 0;
-           }    
-       }
+   }
    }
   }    
   
@@ -371,6 +380,13 @@ void SysTick_Handler(void)
             motion[i] = 1;
       }       
     }
+    if (retry[i] > total_retry){
+           retry_timer[i] ++;
+           if (retry_timer[i] >= restart_time){
+               retry[i] = 0;
+               retry_timer[i] = 0;
+           }    
+       } 
    }    
    
    //Motor motion enable condition
@@ -463,9 +479,8 @@ void SysTick_Handler(void)
             motor_timer[4] = 0; 
          }       
      }
-     
+   
 
-  
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
