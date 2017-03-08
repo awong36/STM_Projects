@@ -43,6 +43,8 @@
 #define debounce 100            //Debounce time for micro-switches, configured as seconds/1ms
 #define signal_time 2000        //On time for external trigger signal, configured as seconds/1ms
 #define restart_time 900000     //reset retry count after this set time expires, configured as seconds/1ms
+#define up 0                    //boolean for up direction 
+#define down 1                  //boolean for down direction
 
 extern bool motor_dir[5];
 extern bool motion[5];
@@ -294,29 +296,31 @@ void SysTick_Handler(void)
  
   //Motor Switches condition 
   for(i = 0; i <= 4; i++){
-    if (SW_UP[i]){
-        if (motor_dir[i] != 1){
-            //motor_dir[i] = 1;      //next direction
-            motor_rest[i] = rest_time; //set rest time
-            motor_timer[i] = 0;
-            motion[i] = 0;
-            cnt_trigger[i] ++;
-        } 
-        motor_dir[i] = 1;      //next direction        
-    }        
+     if (motion[i] == 1){ 
+        if (SW_UP[i] && DIR_UP[i]){
+            if (motor_dir[i] != 1){
+                motor_rest[i] = rest_time; //set rest time
+                motor_timer[i] = 0;
+                motion[i] = 0;
+                cnt_trigger[i] ++;
+            } 
+            motor_dir[i] = down;      //next direction        
+        }        
+    }
   }
   
   for(i = 0; i <= 4; i++){
-    if (SW_DWN[i]){
-        if (motor_dir[i] != 0){
-            //motor_dir[i] = 0;      //next direction 
-            motor_rest[i] = rest_time; //set rest time 
-            motor_timer[i] = 0;
-            motion[i] = 0;
-            cnt_trigger[i] ++;
-        } 
-        motor_dir[i] = 0;      //next direction    
-    }
+      if (motion[i] == 1){
+        if (SW_DWN[i] && DIR_DWN[i]){
+            if (motor_dir[i] != 0){
+                motor_rest[i] = rest_time; //set rest time 
+                motor_timer[i] = 0;
+                motion[i] = 0;
+                cnt_trigger[i] ++;
+            } 
+            motor_dir[i] = up;      //next direction    
+        }
+    }  
   }  
   
   //Motor timeout condition
@@ -330,18 +334,19 @@ void SysTick_Handler(void)
                motor_timer[i] = 0;
                retry[i] ++;
                //switch direction when error occurs
-               if (DIR_UP[i] == 1){
-                    motor_dir[i] = 1;
-               }
-               if (DIR_DWN[i] == 1){
-                    motor_dir[i] = 0;
-               }    
+//               if (DIR_UP[i] == 1){
+//                    motor_dir[i] = 1;
+//               }
+//               if (DIR_DWN[i] == 1){
+//                    motor_dir[i] = 0;
+//               }    
            }
    }
    }
   }    
   
   //Motor reset condition
+
   if (motion[0] == 0){
     HAL_GPIO_WritePin(DIR_UP0_GPIO_Port, DIR_UP0_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin, GPIO_PIN_RESET);
@@ -370,31 +375,31 @@ void SysTick_Handler(void)
   
   //Motion ready condition
   for(i = 0; i <= 4; i++){
-    if (retry[i] <= total_retry){
-      if (motor_rest[i] > 0){
-            motor_rest[i] --;
-            motion[i] = 0;
-            motor_timer[i] = 0;
-      }
-      if (motor_rest[i] == 0){
-            motion[i] = 1;
-      }       
-    }
-    if (retry[i] > total_retry){
-           retry_timer[i] ++;
-           if (retry_timer[i] >= restart_time){
-               retry[i] = 0;
-               retry_timer[i] = 0;
-           }    
-       } 
+    if (motion[i] == 0){  
+        if (retry[i] <= total_retry){
+          if (motor_rest[i] > 0){
+                motor_rest[i] --;
+          }
+          if (motor_rest[i] <= 1){
+                motion[i] = 1;
+          }       
+        }
+        if (retry[i] > total_retry){
+               retry_timer[i] ++;
+               if (retry_timer[i] >= restart_time){
+                   retry[i] = 0;
+                   retry_timer[i] = 0;
+               }    
+        }
+   }
    }    
    
    //Motor motion enable condition
    if (motion[0] == 1){
-         if (motor_dir[0] == 1 && HAL_GPIO_ReadPin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin) != SET){          
+         if (motor_dir[0] == down && HAL_GPIO_ReadPin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin) != SET){          
             if (cnt_trigger[0] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG0_GPIO_Port, SIG_TRIG0_Pin, GPIO_PIN_SET); //sig trig set for counter
-                cnt_timer[0] = signal_time;
+                //cnt_timer[0] = signal_time;
                 retry[0] = 0;   //reset retry count if cycle counter increments
                 
             }
@@ -402,14 +407,14 @@ void SysTick_Handler(void)
             motor_timer[0] = 0;
             cnt_trigger[0] = 0;
          }
-         if (motor_dir[0] == 0 && HAL_GPIO_ReadPin(DIR_UP0_GPIO_Port, DIR_UP0_Pin) != SET){ 
+         if (motor_dir[0] == up && HAL_GPIO_ReadPin(DIR_UP0_GPIO_Port, DIR_UP0_Pin) != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG0_GPIO_Port, SIG_TRIG0_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP0_GPIO_Port, DIR_UP0_Pin, GPIO_PIN_SET);
             motor_timer[0] = 0; 
          }       
      } 
    if (motion[1] == 1){
-         if (motor_dir[1] == 1 && HAL_GPIO_ReadPin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin) != SET){          
+         if (motor_dir[1] == down && HAL_GPIO_ReadPin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin) != SET){          
             if (cnt_trigger[1] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG1_GPIO_Port, SIG_TRIG1_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[1] = signal_time; 
@@ -419,14 +424,14 @@ void SysTick_Handler(void)
             motor_timer[1] = 0;
             cnt_trigger[1] = 0;
          }
-         if (motor_dir[1] == 0 && HAL_GPIO_ReadPin(DIR_UP1_GPIO_Port, DIR_UP1_Pin) != SET){ 
+         if (motor_dir[1] == up && HAL_GPIO_ReadPin(DIR_UP1_GPIO_Port, DIR_UP1_Pin) != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG1_GPIO_Port, SIG_TRIG1_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP1_GPIO_Port, DIR_UP1_Pin, GPIO_PIN_SET);
             motor_timer[1] = 0; 
          }       
      } 
    if (motion[2] == 1){
-         if (motor_dir[2] == 1 && HAL_GPIO_ReadPin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin) != SET){          
+         if (motor_dir[2] == down && HAL_GPIO_ReadPin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin) != SET){          
             if (cnt_trigger[2] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG2_GPIO_Port, SIG_TRIG2_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[2] = signal_time;
@@ -437,14 +442,14 @@ void SysTick_Handler(void)
             motor_timer[2] = 0;
             cnt_trigger[2] = 0;
          }
-         if (motor_dir[2] == 0 && HAL_GPIO_ReadPin(DIR_UP2_GPIO_Port, DIR_UP2_Pin) != SET){ 
+         if (motor_dir[2] == up && HAL_GPIO_ReadPin(DIR_UP2_GPIO_Port, DIR_UP2_Pin) != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG2_GPIO_Port, SIG_TRIG2_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP2_GPIO_Port, DIR_UP2_Pin, GPIO_PIN_SET);
             motor_timer[2] = 0; 
          }       
      }
    if (motion[3] == 1){
-         if (motor_dir[3] == 1 && HAL_GPIO_ReadPin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin) != SET){          
+         if (motor_dir[3] == down && HAL_GPIO_ReadPin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin) != SET){          
             if (cnt_trigger[3] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG3_GPIO_Port, SIG_TRIG3_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[3] = signal_time;
@@ -455,14 +460,14 @@ void SysTick_Handler(void)
             motor_timer[3] = 0;
             cnt_trigger[3] = 0;
          }
-         if (motor_dir[3] == 0 && HAL_GPIO_ReadPin(DIR_UP3_GPIO_Port, DIR_UP3_Pin) != SET){ 
+         if (motor_dir[3] == up && HAL_GPIO_ReadPin(DIR_UP3_GPIO_Port, DIR_UP3_Pin) != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG3_GPIO_Port, SIG_TRIG3_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP3_GPIO_Port, DIR_UP3_Pin, GPIO_PIN_SET);
             motor_timer[3] = 0; 
          }       
      }
    if (motion[4] == 1){
-         if (motor_dir[4] == 1 && HAL_GPIO_ReadPin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin) != SET){          
+         if (motor_dir[4] == down && HAL_GPIO_ReadPin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin) != SET){          
             if (cnt_trigger[4] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG4_GPIO_Port, SIG_TRIG4_Pin, GPIO_PIN_SET); //sig trig set for counter
                 cnt_timer[4] = signal_time;
@@ -473,7 +478,7 @@ void SysTick_Handler(void)
             motor_timer[4] = 0;
             cnt_trigger[4] = 0;
          }
-         if (motor_dir[4] == 0 && HAL_GPIO_ReadPin(DIR_UP4_GPIO_Port, DIR_UP4_Pin) != SET){ 
+         if (motor_dir[4] == up && HAL_GPIO_ReadPin(DIR_UP4_GPIO_Port, DIR_UP4_Pin) != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG4_GPIO_Port, SIG_TRIG4_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP4_GPIO_Port, DIR_UP4_Pin, GPIO_PIN_SET);
             motor_timer[4] = 0; 
