@@ -32,9 +32,9 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-#include "stdbool.h"
 
 /* USER CODE BEGIN Includes */
+#include "stdbool.h"
 /* volatile -> can be modified by ISR or other functions, continue to exist after ISR or function completed execution */
 volatile bool motor_dir[5] = {1, 1, 1, 1, 1};                           //Motor next direction [0 for UP, 1 for DOWN]
 volatile bool motion[5] = {1, 1, 1, 1, 1};                              //Motion enable [0 for stop, 1 for enable]
@@ -53,11 +53,12 @@ volatile uint32_t retry_timer[5] = {0, 0, 0, 0, 0};                     //retry 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
+
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 /* USER CODE END PV */
 
@@ -109,11 +110,11 @@ int main(void)
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
     
     //Adjust PWM duty cycle, max counter period configured @ 200
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 200);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_4, 200);
-    __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_1, 200);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 201);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 201);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 201);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_4, 201);
+    __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_1, 201);
     
 
   /* USER CODE END 2 */
