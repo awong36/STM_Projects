@@ -59,6 +59,7 @@ extern uint32_t cnt_timer[5];
 extern uint32_t motor_timer[5];
 extern uint32_t motor_rest[5];
 extern uint32_t count[5];
+extern uint32_t count_dir[5];
 extern uint32_t retry_timer[5];
 uint8_t i;
      
@@ -109,9 +110,9 @@ void UpdateGPIO(void)
         count[0] = 0;
         SW_UP[0] = 1;
       }    
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_UP0_GPIO_Port, SW_UP0_Pin)){
         SW_UP[0] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_UP1_GPIO_Port, SW_UP1_Pin)){
@@ -120,9 +121,9 @@ void UpdateGPIO(void)
         count[1] = 0;
         SW_UP[1] = 1;
       } 
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_UP1_GPIO_Port, SW_UP1_Pin)){
         SW_UP[1] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_UP2_GPIO_Port, SW_UP2_Pin)){
@@ -131,9 +132,9 @@ void UpdateGPIO(void)
         count[2] = 0;
         SW_UP[2] = 1;
       }
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_UP2_GPIO_Port, SW_UP2_Pin)){
         SW_UP[2] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_UP3_GPIO_Port, SW_UP3_Pin)){
@@ -142,9 +143,9 @@ void UpdateGPIO(void)
         count[3] = 0;
         SW_UP[3] = 1;
       }  
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_UP3_GPIO_Port, SW_UP3_Pin)){
         SW_UP[3] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_UP4_GPIO_Port, SW_UP4_Pin)){
@@ -153,9 +154,9 @@ void UpdateGPIO(void)
         count[4] = 0;
         SW_UP[4] = 1;
       }
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_UP4_GPIO_Port, SW_UP4_Pin)){
         SW_UP[4] = 0;
-      }
   }
   
   //Scan DOWN switch GPIO status      
@@ -164,10 +165,10 @@ void UpdateGPIO(void)
       if (count[0] >= debounce){ // delay for debounce
         count[0] = 0;
         SW_DWN[0] = 1;
-      }    
-      else{
-        SW_DWN[0] = 0;
       }
+  }      
+  else if (!HAL_GPIO_ReadPin(SW_DWN0_GPIO_Port, SW_DWN0_Pin)){
+        SW_DWN[0] = 0;
   }
   
   if (HAL_GPIO_ReadPin(SW_DWN1_GPIO_Port, SW_DWN1_Pin)){
@@ -176,9 +177,9 @@ void UpdateGPIO(void)
         count[1] = 0;
         SW_DWN[1] = 1;
       } 
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_DWN1_GPIO_Port, SW_DWN1_Pin)){
         SW_DWN[1] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_DWN2_GPIO_Port, SW_DWN2_Pin)){
@@ -186,11 +187,10 @@ void UpdateGPIO(void)
       if (count[2] >= debounce){ // delay for debounce
         count[2] = 0;
         SW_DWN[2] = 1;
-      } 
-      else{
+      }       
+  }
+  else if (!HAL_GPIO_ReadPin(SW_DWN2_GPIO_Port, SW_DWN2_Pin)){
         SW_DWN[2] = 0;
-      }
-      
   }
   
   if (HAL_GPIO_ReadPin(SW_DWN3_GPIO_Port, SW_DWN3_Pin)){
@@ -199,9 +199,9 @@ void UpdateGPIO(void)
         count[3] = 0;
         SW_DWN[3] = 1;
       } 
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_DWN3_GPIO_Port, SW_DWN3_Pin)){
         SW_DWN[3] = 0;
-      }
   }
   
   if (HAL_GPIO_ReadPin(SW_DWN4_GPIO_Port, SW_DWN4_Pin)){
@@ -210,9 +210,9 @@ void UpdateGPIO(void)
         count[4] = 0;
         SW_DWN[4] = 1;
       }
-      else{
+  }
+  else if (!HAL_GPIO_ReadPin(SW_DWN4_GPIO_Port, SW_DWN4_Pin)){
         SW_DWN[4] = 0;
-      }
   }
   
 }    
@@ -221,65 +221,108 @@ void UpdateDirection(void)
 {
   //Scan UP direction GPIO status
   if (HAL_GPIO_ReadPin(DIR_UP0_GPIO_Port, DIR_UP0_Pin)){
-      DIR_UP[0] = 1;
-  }
-  else{
+      count_dir[0] ++;
+      if (count_dir[0] >= debounce){
+           count_dir[0] = 0;
+           DIR_UP[0] = 1;
+      }
+  }    
+  else if (!HAL_GPIO_ReadPin(DIR_UP0_GPIO_Port, DIR_UP0_Pin)){
       DIR_UP[0] = 0;
-  }
+  }   
+  
+  
   if (HAL_GPIO_ReadPin(DIR_UP1_GPIO_Port, DIR_UP1_Pin)){
-      DIR_UP[1] = 1;
+      count_dir[1] ++;
+      if (count_dir[1] >= debounce){
+           count_dir[1] = 0;
+           DIR_UP[1] = 1;
+      } 
   }
-  else{
+  else if (!HAL_GPIO_ReadPin(DIR_UP1_GPIO_Port, DIR_UP1_Pin)){
       DIR_UP[1] = 0;
-  }
+  } 
   if (HAL_GPIO_ReadPin(DIR_UP2_GPIO_Port, DIR_UP2_Pin)){
-      DIR_UP[2] = 1;
+      count_dir[2] ++;
+      if (count_dir[2] >= debounce){
+           count_dir[2] = 0;
+           DIR_UP[2] = 1;
+      } 
   }
-  else{
+  else if (!HAL_GPIO_ReadPin(DIR_UP2_GPIO_Port, DIR_UP2_Pin)){
       DIR_UP[2] = 0;
-  }
+  } 
+  
   if (HAL_GPIO_ReadPin(DIR_UP3_GPIO_Port, DIR_UP3_Pin)){
-      DIR_UP[3] = 1;
+      count_dir[3] ++;
+      if (count_dir[3] >= debounce){
+           count_dir[3] = 0;
+           DIR_UP[3] = 1;
+      } 
   }
-  else{
+  else if (!HAL_GPIO_ReadPin(DIR_UP3_GPIO_Port, DIR_UP3_Pin)){
       DIR_UP[3] = 0;
-  }
+  } 
   if (HAL_GPIO_ReadPin(DIR_UP4_GPIO_Port, DIR_UP4_Pin)){
-      DIR_UP[4] = 1;
+      count_dir[4] ++;
+      if (count_dir[4] >= debounce){
+           count_dir[4] = 0;
+           DIR_UP[4] = 1;
+      }  
   }
-  else{
+  else if (!HAL_GPIO_ReadPin(DIR_UP4_GPIO_Port, DIR_UP4_Pin)){
       DIR_UP[4] = 0;
-  }
+  } 
   //Scan DOWN direction GPIO status
   if (HAL_GPIO_ReadPin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin)){
-      DIR_DWN[0] = 1;
+      count_dir[0] ++;
+      if (count_dir[0] >= debounce){
+           count_dir[0] = 0;
+           DIR_DWN[0] = 1;
+      } 
   }
-  else{
-      DIR_DWN[0] = 0;
+  else if (!HAL_GPIO_ReadPin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin)){
+      DIR_DWN[0] = 0;   
   }
   if (HAL_GPIO_ReadPin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin)){
-      DIR_DWN[1] = 1;
+      count_dir[1] ++;
+      if (count_dir[1] >= debounce){
+           count_dir[1] = 0;
+           DIR_DWN[1] = 1;
+      } 
   }
-  else{
-      DIR_DWN[1] = 0;
+  else if (!HAL_GPIO_ReadPin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin)){
+      DIR_DWN[1] = 0;   
   }
   if (HAL_GPIO_ReadPin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin)){
-      DIR_DWN[2] = 1;
+      count_dir[2] ++;
+      if (count_dir[2] >= debounce){
+           count_dir[2] = 0;
+           DIR_DWN[2] = 1;
+      } 
   }
-  else{
-      DIR_DWN[2] = 0;
+  else if (!HAL_GPIO_ReadPin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin)){
+      DIR_DWN[2] = 0;   
   }
   if (HAL_GPIO_ReadPin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin)){
-      DIR_DWN[3] = 1;
+      count_dir[3] ++;
+      if (count_dir[3] >= debounce){
+           count_dir[3] = 0;
+           DIR_DWN[3] = 1;
+      } 
   }
-  else{
-      DIR_DWN[3] = 0;
+  else if (!HAL_GPIO_ReadPin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin)){
+      DIR_DWN[3] = 0;   
   }
   if (HAL_GPIO_ReadPin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin)){
-      DIR_DWN[4] = 1;
+      count_dir[4] ++;
+      if (count_dir[4] >= debounce){
+           count_dir[4] = 0;
+           DIR_DWN[4] = 1;
+      } 
   }
-  else{
-      DIR_DWN[4] = 0;
+  else if (!HAL_GPIO_ReadPin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin)){
+      DIR_DWN[4] = 0;   
   }
 }    
 
@@ -298,34 +341,26 @@ void SysTick_Handler(void)
   //Motor Switches condition 
   for(i = 0; i <= 4; i++){
      if (motion[i] == 1){ 
-         if (motor_dir[i] == up){ 
+         if (DIR_UP[i] && !DIR_DWN[i]){ 
             if (SW_UP[i]){
-                if (motor_dir[i] != 1){
                     motor_rest[i] = rest_time; //set rest time
                     motor_timer[i] = 0;
                     motion[i] = 0;
-                    cnt_trigger[i] ++;
-                } 
-                motor_dir[i] = down;      //next direction        
-            }        
+                    cnt_trigger[i] ++;     
+            } 
+                  
         } 
-        else if (motor_dir[i] == down){
+        if (DIR_DWN[i] && !DIR_UP[i]){
             if (SW_DWN[i]){
-                if (motor_dir[i] != 0){
                     motor_rest[i] = rest_time; //set rest time 
                     motor_timer[i] = 0;
                     motion[i] = 0;
-                    cnt_trigger[i] ++;
-                } 
-                motor_dir[i] = up;      //next direction    
+                    cnt_trigger[i] ++;  
             }
-        }
+            
+        }      
     }
   }
-  
-  for(i = 0; i <= 4; i++){
-      
-  }  
   
   //Motor timeout condition
   for(i = 0; i <= 4; i++){
@@ -338,11 +373,11 @@ void SysTick_Handler(void)
                motor_timer[i] = 0;
                retry[i] ++;
                //switch direction when error occurs
-//               if (DIR_UP[i] == 1){
-//                    motor_dir[i] = 1;
+//               if (DIR_UP[i] && !DIR_DWN[i]){
+//                    motor_dir[i] = down;
 //               }
-//               if (DIR_DWN[i] == 1){
-//                    motor_dir[i] = 0;
+//               if (DIR_DWN[i] && !DIR_UP[i]){
+//                    motor_dir[i] = up;
 //               }    
            }
    }
@@ -354,37 +389,27 @@ void SysTick_Handler(void)
   if (motion[0] == 0){
     HAL_GPIO_WritePin(DIR_UP0_GPIO_Port, DIR_UP0_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin, GPIO_PIN_RESET);
-    motor_timer[0] = 0; 
-    DIR_UP[0] = 0;
-    DIR_DWN[0] = 0;    
+    motor_timer[0] = 0;    
   }
   if (motion[1] == 0){
     HAL_GPIO_WritePin(DIR_UP1_GPIO_Port, DIR_UP1_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin, GPIO_PIN_RESET);
-    motor_timer[1] = 0; 
-    DIR_UP[1] = 0;
-    DIR_DWN[1] = 0;     
+    motor_timer[1] = 0;    
   }
   if (motion[2] == 0){
     HAL_GPIO_WritePin(DIR_UP2_GPIO_Port, DIR_UP2_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin, GPIO_PIN_RESET);
-    motor_timer[2] = 0; 
-    DIR_UP[2] = 0;
-    DIR_DWN[2] = 0;     
+    motor_timer[2] = 0;      
   }
   if (motion[3] == 0){
     HAL_GPIO_WritePin(DIR_UP3_GPIO_Port, DIR_UP3_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin, GPIO_PIN_RESET);
-    motor_timer[3] = 0;  
-    DIR_UP[3] = 0;
-    DIR_DWN[3] = 0;   
+    motor_timer[3] = 0;    
   }
   if (motion[4] == 0){
     HAL_GPIO_WritePin(DIR_UP4_GPIO_Port, DIR_UP4_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin, GPIO_PIN_RESET);
-    motor_timer[4] = 0; 
-    DIR_UP[4] = 0;
-    DIR_DWN[4] = 0;   
+    motor_timer[4] = 0;  
   }
   
   //Motion ready condition
@@ -393,6 +418,12 @@ void SysTick_Handler(void)
         if (retry[i] <= total_retry){
           if (motor_rest[i] > 0){
                 motor_rest[i] --;
+                if (SW_DWN[i]){
+                    motor_dir[i] = up;
+                }
+                else if (SW_UP[i]){
+                    motor_dir[i] = down;
+                }        
           }
           if (motor_rest[i] <= 1){
                 motion[i] = 1;
@@ -410,6 +441,7 @@ void SysTick_Handler(void)
    
    //Motor motion enable condition
    if (motion[0] == 1){
+         
          if (motor_dir[0] == down && DIR_DWN[0] != SET){          
             if (cnt_trigger[0] == 2){
                 HAL_GPIO_WritePin(SIG_TRIG0_GPIO_Port, SIG_TRIG0_Pin, GPIO_PIN_SET); //sig trig set for counter
@@ -418,14 +450,12 @@ void SysTick_Handler(void)
                 
             }
             HAL_GPIO_WritePin(DIR_DWN0_GPIO_Port, DIR_DWN0_Pin, GPIO_PIN_SET);
-            DIR_DWN[0] = 1;
             motor_timer[0] = 0;
             cnt_trigger[0] = 0;
          }
-         if (motor_dir[0] == up && DIR_UP[0] != SET){ 
+         else if (motor_dir[0] == up && DIR_UP[0] != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG0_GPIO_Port, SIG_TRIG0_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP0_GPIO_Port, DIR_UP0_Pin, GPIO_PIN_SET);
-            DIR_UP[0] = 1; 
             motor_timer[0] = 0; 
          }       
      } 
@@ -437,14 +467,12 @@ void SysTick_Handler(void)
                 retry[1] = 0;   //reset retry count if cycle counter increments        
             }
             HAL_GPIO_WritePin(DIR_DWN1_GPIO_Port, DIR_DWN1_Pin, GPIO_PIN_SET);
-            DIR_DWN[1] = 1;
             motor_timer[1] = 0;
             cnt_trigger[1] = 0;
          }
-         if (motor_dir[1] == up && DIR_UP[1] != SET){ 
+         else if (motor_dir[1] == up && DIR_UP[1] != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG1_GPIO_Port, SIG_TRIG1_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP1_GPIO_Port, DIR_UP1_Pin, GPIO_PIN_SET);
-            DIR_UP[1] = 1; 
             motor_timer[1] = 0; 
          }       
      } 
@@ -457,14 +485,12 @@ void SysTick_Handler(void)
                 
             }
             HAL_GPIO_WritePin(DIR_DWN2_GPIO_Port, DIR_DWN2_Pin, GPIO_PIN_SET);
-            DIR_DWN[2] = 1;
             motor_timer[2] = 0;
             cnt_trigger[2] = 0;
          }
-         if (motor_dir[2] == up && DIR_UP[2] != SET){ 
+         else if (motor_dir[2] == up && DIR_UP[2] != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG2_GPIO_Port, SIG_TRIG2_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP2_GPIO_Port, DIR_UP2_Pin, GPIO_PIN_SET);
-            DIR_UP[2] = 1; 
             motor_timer[2] = 0; 
          }       
      }
@@ -477,14 +503,12 @@ void SysTick_Handler(void)
                 
             }
             HAL_GPIO_WritePin(DIR_DWN3_GPIO_Port, DIR_DWN3_Pin, GPIO_PIN_SET);
-            DIR_DWN[3] = 1;
             motor_timer[3] = 0;
             cnt_trigger[3] = 0;
          }
-         if (motor_dir[3] == up && DIR_UP[3] != SET){ 
+         else if (motor_dir[3] == up && DIR_UP[3] != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG3_GPIO_Port, SIG_TRIG3_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP3_GPIO_Port, DIR_UP3_Pin, GPIO_PIN_SET);
-            DIR_UP[3] = 1; 
             motor_timer[3] = 0; 
          }       
      }
@@ -497,14 +521,12 @@ void SysTick_Handler(void)
                 
             }
             HAL_GPIO_WritePin(DIR_DWN4_GPIO_Port, DIR_DWN4_Pin, GPIO_PIN_SET);
-            DIR_DWN[4] = 1;
             motor_timer[4] = 0;
             cnt_trigger[4] = 0;
          }
-         if (motor_dir[4] == up && DIR_UP[4] != SET){ 
+         else if (motor_dir[4] == up && DIR_UP[4] != SET){ 
             HAL_GPIO_WritePin(SIG_TRIG4_GPIO_Port, SIG_TRIG4_Pin, GPIO_PIN_RESET);  //sig trig reset for counter
             HAL_GPIO_WritePin(DIR_UP4_GPIO_Port, DIR_UP4_Pin, GPIO_PIN_SET);
-            DIR_UP[4] = 1; 
             motor_timer[4] = 0; 
          }       
      }

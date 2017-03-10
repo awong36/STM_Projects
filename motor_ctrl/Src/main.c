@@ -48,6 +48,7 @@ volatile uint32_t cnt_timer[5] = {0, 0, 0, 0, 0};                       //On tim
 volatile uint32_t motor_timer[5] = {0, 0, 0, 0, 0};                     //Motor run time
 volatile uint32_t motor_rest[5] = {0, 0, 0, 0, 0};                      //Motor rest time < 0 for bypass 
 volatile uint32_t count[5] = {0, 0, 0, 0, 0};                           //delay counter
+volatile uint32_t count_dir[5] = {0, 0, 0, 0, 0};                       //delay for direction signal
 volatile uint32_t retry_timer[5] = {0, 0, 0, 0, 0};                     //retry count resets after time expires
 
 /* USER CODE END Includes */
