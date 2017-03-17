@@ -43,7 +43,7 @@
 #define rest_time 15000          //Rest time after movement completed, configured as seconds/1ms
 #define debounce 100            //Debounce time for micro-switches, configured as seconds/1ms
 #define signal_time 2000        //On time for external trigger signal, configured as seconds/1ms
-#define restart_time 900000     //reset retry count after this set time expires, configured as seconds/1ms
+#define restart_time 3600000     //reset retry count after this set time expires, configured as seconds/1ms
 #define up 0                    //boolean for up direction 
 #define down 1                  //boolean for down direction
 
@@ -371,14 +371,15 @@ void SysTick_Handler(void)
                motion[i] = 0;
                motor_rest[i] = rest_time;
                motor_timer[i] = 0;
+               cnt_trigger[0] = 0;
                retry[i] ++;
                //switch direction when error occurs
-//               if (DIR_UP[i] && !DIR_DWN[i]){
-//                    motor_dir[i] = down;
-//               }
-//               if (DIR_DWN[i] && !DIR_UP[i]){
-//                    motor_dir[i] = up;
-//               }    
+               if (DIR_UP[i] && !DIR_DWN[i]){
+                    motor_dir[i] = down;
+               }
+               if (DIR_DWN[i] && !DIR_UP[i]){
+                    motor_dir[i] = up;
+               }    
            }
    }
    }
